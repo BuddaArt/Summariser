@@ -81,7 +81,8 @@ async function summarizeFile(
     if (!response.choices?.length) {
       throw new Error('Empty response from LLM (no choices returned)');
     }
-    const summary = response.choices[0]?.message?.content?.trim() ?? 'No summary generated';
+    const raw = response.choices[0]?.message?.content ?? '';
+    const summary = raw.replace(/<think>[\s\S]*?<\/think>/g, '').trim() || 'No summary generated';
     if (useCache) {
       writeCache(file.absolutePath, summary);
     }
