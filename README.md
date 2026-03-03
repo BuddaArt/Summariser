@@ -21,6 +21,8 @@ Works with any OpenAI-compatible API: OpenAI, OpenRouter, Groq, Ollama, etc.
 
 ## Install
 
+npm install summarizer -g
+
 **Option A — install from source** (requires Node.js v18+):
 
 ```bash
