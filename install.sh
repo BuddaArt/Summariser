@@ -37,13 +37,19 @@ info "Installing dependencies..."
 npm install --silent
 success "Dependencies installed"
 
+# ─── Clean previous build ─────────────────────────────────────────────────────
+info "Cleaning previous build..."
+rm -rf dist
+success "dist/ removed"
+
 # ─── Build ────────────────────────────────────────────────────────────────────
 info "Compiling TypeScript..."
 npm run build
 success "Build complete (dist/)"
 
 # ─── Global install ───────────────────────────────────────────────────────────
-info "Installing globally via npm link..."
+info "Relinking globally..."
+npm unlink -g summariser 2>/dev/null || true
 npm link
 success "'sumr' and 'summariser' commands are now available globally"
 

@@ -1,19 +1,36 @@
 {
   "name": "summariser",
   "version": "1.0.0",
-  "description": "AI-powered project file summarizer",
+  "description": "AI-powered CLI tool that scans a project and generates per-file summaries using any OpenAI-compatible LLM",
   "main": "dist/cli.js",
   "bin": {
     "sumr": "dist/cli.js",
     "summariser": "dist/cli.js"
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "ts-node src/cli.ts",
     "package:win": "pkg dist/cli.js --targets node18-win-x64 --output bin/sum-win.exe",
     "package:linux": "pkg dist/cli.js --targets node18-linux-x64 --output bin/sum-linux",
     "package:mac": "pkg dist/cli.js --targets node18-macos-x64 --output bin/sum-macos",
     "package:all": "npm run package:win && npm run package:linux && npm run package:mac"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "llm",
+    "summarizer",
+    "code",
+    "openai",
+    "developer-tools"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "@inquirer/prompts": "^5.1.2",

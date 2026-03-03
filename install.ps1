@@ -38,6 +38,11 @@ npm install --silent
 if ($LASTEXITCODE -ne 0) { fail "npm install failed" }
 success "Dependencies installed"
 
+# ─── Clean previous build ─────────────────────────────────────────────────────
+info "Cleaning previous build..."
+if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+success "dist/ removed"
+
 # ─── Build ────────────────────────────────────────────────────────────────────
 info "Compiling TypeScript..."
 npm run build
@@ -45,9 +50,10 @@ if ($LASTEXITCODE -ne 0) { fail "Build failed" }
 success "Build complete (dist/)"
 
 # ─── Global install ───────────────────────────────────────────────────────────
-info "Installing globally via npm link..."
+info "Relinking globally..."
+npm unlink -g summariser 2>$null
 npm link
-if ($LASTEXITCODE -ne 0) { fail "npm link failed" }
+if ($LASTEXITCODE -ne 0) { fail "npm link failed. Try running as Administrator." }
 success "'sumr' and 'summariser' commands are now available globally"
 
 Write-Host ""
