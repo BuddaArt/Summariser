@@ -45,10 +45,10 @@ success "Build complete (dist/)"
 # ─── Global install ───────────────────────────────────────────────────────────
 info "Installing globally via npm link..."
 npm link
-success "'sum' and 'summariser' commands are now available globally"
+success "'sumr' and 'summariser' commands are now available globally"
 
 echo ""
 echo -e "${GREEN}  Done!${NC} Run the setup wizard to configure your API key:"
 echo ""
-echo "    sum config init"
+echo "    sumr config init"
 echo ""

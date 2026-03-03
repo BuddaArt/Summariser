@@ -4,7 +4,7 @@
   "description": "AI-powered project file summarizer",
   "main": "dist/cli.js",
   "bin": {
-    "smr": "dist/cli.js",
+    "sumr": "dist/cli.js",
     "summariser": "dist/cli.js"
   },
   "scripts": {

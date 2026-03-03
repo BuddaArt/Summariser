@@ -1,4 +1,3 @@
-/* <summariser>Format extracted symbols into one-line summary string.</summariser> */
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtractedSymbol, PatternRule, PatternSet } from './patterns/types';

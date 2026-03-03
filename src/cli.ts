@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* <summariser>Анализатор команд для управления конфигурацией и реанимации файлов</summariser> */
 import { Command } from 'commander';
 import chalk from 'chalk';
 import * as path from 'path';
@@ -17,7 +16,8 @@ import {
 import { scanDirectory } from './scanner';
 import { summarizeFiles } from './summarizer';
 import { summarizeFilesByPattern } from './pattern-summarizer';
-import { renderProgress, renderTree } from './renderer';
+import { renderProgress, renderTree, renderTreePlain } from './renderer';
+import { clearCache } from './cache';
 import { runSetupWizard } from './setup';
 import { detectSystemLang, getT } from './i18n';
 
@@ -39,12 +39,15 @@ program
     const lang = detectSystemLang();
     const t = getT(lang);
     const config = loadConfig();
+    const verbose = !!options.verbose;
 
     const isPatternMode = config.summariseMode === 'pattern';
 
     if (!isPatternMode && !config.apiKey) {
-      console.log(chalk.bold.cyan(t.banner));
-      console.log('\n' + chalk.yellow(t.firstRunHint) + '\n');
+      if (verbose) {
+        console.log(chalk.bold.cyan(t.banner));
+        console.log('\n' + chalk.yellow(t.firstRunHint) + '\n');
+      }
       await runSetupWizard();
       return;
     }
@@ -52,12 +55,14 @@ program
     const targetDir = path.resolve(options.path);
     const concurrency = Math.max(1, parseInt(options.concurrency, 10) || config.concurrency);
 
-    console.log(chalk.bold(`\n  ${t.welcomeBack}: ${chalk.cyan(targetDir)}`));
-    console.log(
-      chalk.gray(`  Mode: ${isPatternMode ? 'pattern' : 'llm'}`) + '\n' +
-      chalk.gray(`  Include: ${config.includePattern}`) + '\n' +
-      chalk.gray(`  Exclude: ${config.excludePattern}`) + '\n'
-    );
+    if (verbose) {
+      console.log(chalk.bold(`\n  ${t.welcomeBack}: ${chalk.cyan(targetDir)}`));
+      console.log(
+        chalk.gray(`  Mode: ${isPatternMode ? 'pattern' : 'llm'}`) + '\n' +
+        chalk.gray(`  Include: ${config.includePattern}`) + '\n' +
+        chalk.gray(`  Exclude: ${config.excludePattern}`) + '\n'
+      );
+    }
 
     const files = scanDirectory(targetDir, {
       includePattern: config.includePattern,
@@ -65,37 +70,52 @@ program
     });
 
     if (files.length === 0) {
-      console.log(chalk.yellow('  No matching files found.\n'));
+      if (verbose) {
+        console.log(chalk.yellow('  No matching files found.\n'));
+      }
       process.exit(0);
     }
 
-    console.log(chalk.gray(`  Found ${files.length} file(s) to summarize.\n`));
+    if (verbose) {
+      console.log(chalk.gray(`  Found ${files.length} file(s) to summarize.\n`));
+    }
 
     let summaries;
 
     if (isPatternMode) {
-      process.stdout.write(renderProgress(0, files.length, ''));
-      summaries = summarizeFilesByPattern(files, (completed, total, result) => {
-        process.stdout.write(renderProgress(completed, total, result.file.relativePath));
-      });
+      if (verbose) {
+        process.stdout.write(renderProgress(0, files.length, ''));
+        summaries = summarizeFilesByPattern(files, (completed, total, result) => {
+          process.stdout.write(renderProgress(completed, total, result.file.relativePath));
+        });
+      } else {
+        summaries = summarizeFilesByPattern(files);
+      }
     } else {
-      process.stdout.write(renderProgress(0, files.length, ''));
-      summaries = await summarizeFiles(config, files, concurrency, (completed, total, result) => {
-        process.stdout.write(renderProgress(completed, total, result.file.relativePath));
-      }, options.verbose, config.cacheInFile);
+      if (verbose) {
+        process.stdout.write(renderProgress(0, files.length, ''));
+        summaries = await summarizeFiles(config, files, concurrency, (completed, total, result) => {
+          process.stdout.write(renderProgress(completed, total, result.file.relativePath));
+        }, true, config.cacheInFile);
+      } else {
+        summaries = await summarizeFiles(config, files, concurrency, undefined, false, config.cacheInFile);
+      }
     }
 
-    process.stdout.write('\r' + ' '.repeat(80) + '\r');
+    if (verbose) {
+      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      console.log('\n' + renderTree(summaries) + '\n');
 
-    console.log('\n' + renderTree(summaries) + '\n');
-
-    const errors = summaries.filter((s) => s.error);
-    if (errors.length > 0) {
-      console.log(chalk.yellow(`  ${errors.length} file(s) had errors during summarization:`));
-      for (const s of errors) {
-        console.log(chalk.gray(`    ${s.file.relativePath}: `) + chalk.red(s.error));
+      const errors = summaries.filter((s) => s.error);
+      if (errors.length > 0) {
+        console.log(chalk.yellow(`  ${errors.length} file(s) had errors during summarization:`));
+        for (const s of errors) {
+          console.log(chalk.gray(`    ${s.file.relativePath}: `) + chalk.red(s.error));
+        }
+        console.log();
       }
-      console.log();
+    } else {
+      console.log(renderTreePlain(summaries));
     }
   });
 
@@ -110,10 +130,13 @@ program
     const lang = detectSystemLang();
     const t = getT(lang);
     const config = loadConfig();
+    const verbose = !!options.verbose;
 
     if (!config.apiKey) {
-      console.log(chalk.bold.cyan(t.banner));
-      console.log('\n' + chalk.yellow(t.firstRunHint) + '\n');
+      if (verbose) {
+        console.log(chalk.bold.cyan(t.banner));
+        console.log('\n' + chalk.yellow(t.firstRunHint) + '\n');
+      }
       await runSetupWizard();
       return;
     }
@@ -121,12 +144,14 @@ program
     const targetDir = path.resolve(options.path);
     const concurrency = Math.max(1, parseInt(options.concurrency, 10) || config.concurrency);
 
-    console.log(chalk.bold(`\n  Rescan: ${chalk.cyan(targetDir)}`));
-    console.log(
-      chalk.gray(`  Cache: ${config.cacheInFile ? 'will overwrite' : 'disabled (enable with config set cacheInFile true)'}`) + '\n' +
-      chalk.gray(`  Include: ${config.includePattern}`) + '\n' +
-      chalk.gray(`  Exclude: ${config.excludePattern}`) + '\n'
-    );
+    if (verbose) {
+      console.log(chalk.bold(`\n  Rescan: ${chalk.cyan(targetDir)}`));
+      console.log(
+        chalk.gray(`  Cache: ${config.cacheInFile ? 'will overwrite' : 'disabled (enable with config set cacheInFile true)'}`) + '\n' +
+        chalk.gray(`  Include: ${config.includePattern}`) + '\n' +
+        chalk.gray(`  Exclude: ${config.excludePattern}`) + '\n'
+      );
+    }
 
     const files = scanDirectory(targetDir, {
       includePattern: config.includePattern,
@@ -134,34 +159,48 @@ program
     });
 
     if (files.length === 0) {
-      console.log(chalk.yellow('  No matching files found.\n'));
+      if (verbose) {
+        console.log(chalk.yellow('  No matching files found.\n'));
+      }
       process.exit(0);
     }
 
-    console.log(chalk.gray(`  Found ${files.length} file(s) to re-summarize.\n`));
+    if (verbose) {
+      console.log(chalk.gray(`  Found ${files.length} file(s) to re-summarize.\n`));
+    }
 
-    process.stdout.write(renderProgress(0, files.length, ''));
     // forceRescan=true skips reading cache; writeCache still runs if cacheInFile is enabled
-    const summaries = await summarizeFiles(
-      config, files, concurrency,
-      (completed, total, result) => {
-        process.stdout.write(renderProgress(completed, total, result.file.relativePath));
-      },
-      options.verbose,
-      config.cacheInFile,
-      true,
-    );
+    let summaries;
+    if (verbose) {
+      process.stdout.write(renderProgress(0, files.length, ''));
+      summaries = await summarizeFiles(
+        config, files, concurrency,
+        (completed, total, result) => {
+          process.stdout.write(renderProgress(completed, total, result.file.relativePath));
+        },
+        true,
+        config.cacheInFile,
+        true,
+      );
+      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      console.log('\n' + renderTree(summaries) + '\n');
 
-    process.stdout.write('\r' + ' '.repeat(80) + '\r');
-    console.log('\n' + renderTree(summaries) + '\n');
-
-    const errors = summaries.filter((s) => s.error);
-    if (errors.length > 0) {
-      console.log(chalk.yellow(`  ${errors.length} file(s) had errors during summarization:`));
-      for (const s of errors) {
-        console.log(chalk.gray(`    ${s.file.relativePath}: `) + chalk.red(s.error));
+      const errors = summaries.filter((s) => s.error);
+      if (errors.length > 0) {
+        console.log(chalk.yellow(`  ${errors.length} file(s) had errors during summarization:`));
+        for (const s of errors) {
+          console.log(chalk.gray(`    ${s.file.relativePath}: `) + chalk.red(s.error));
+        }
+        console.log();
       }
-      console.log();
+    } else {
+      summaries = await summarizeFiles(
+        config, files, concurrency,
+        undefined, false, config.cacheInFile, true,
+      );
+      for (const s of summaries) {
+        process.stdout.write(`${s.file.relativePath}: ${s.summary}\n`);
+      }
     }
   });
 
@@ -271,6 +310,26 @@ ${config.prompt}`;
     } else {
       console.log(chalk.green('\n  Prompt cleared — will use built-in default.\n'));
     }
+  });
+
+// ─── clear command ─────────────────────────────────────────────────────────────
+program
+  .command('clear')
+  .description('Remove cached summaries from all matching files')
+  .option('-p, --path <dir>', 'Directory to clear', process.cwd())
+  .action((options: { path: string }) => {
+    const config = loadConfig();
+    const targetDir = path.resolve(options.path);
+    const files = scanDirectory(targetDir, {
+      includePattern: config.includePattern,
+      excludePattern: config.excludePattern,
+    });
+    let cleared = 0;
+    for (const file of files) {
+      clearCache(file.absolutePath);
+      cleared++;
+    }
+    console.log(chalk.green(`\n  Cleared cache from ${cleared} file(s) in ${chalk.cyan(targetDir)}\n`));
   });
 
 // ─── Top-level init shortcut ───────────────────────────────────────────────────

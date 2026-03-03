@@ -1,4 +1,3 @@
-/* <summariser>Run Setup Wizard with Config Saved</summariser> */
 import { input, password, select, confirm } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { DEFAULT_CONFIG, SummariseMode, SummariserConfig, getConfigPath, loadConfig, saveConfig } from './config';

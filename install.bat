@@ -55,11 +55,11 @@ if %errorlevel% neq 0 (
     echo   [ERROR] npm link failed. Try running as Administrator.
     exit /b 1
 )
-echo   [OK] 'sum' and 'summariser' commands are now available globally
+echo   [OK] 'sumr' and 'summariser' commands are now available globally
 
 echo.
 echo   Done! Run the setup wizard to configure your API key:
 echo.
-echo     sum config init
+echo     sumr config init
 echo.
 pause

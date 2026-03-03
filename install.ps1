@@ -48,10 +48,10 @@ success "Build complete (dist/)"
 info "Installing globally via npm link..."
 npm link
 if ($LASTEXITCODE -ne 0) { fail "npm link failed" }
-success "'sum' and 'summariser' commands are now available globally"
+success "'sumr' and 'summariser' commands are now available globally"
 
 Write-Host ""
 Write-Host "  Done! Run the setup wizard to configure your API key:" -ForegroundColor Green
 Write-Host ""
-Write-Host "    sum config init"
+Write-Host "    sumr config init"
 Write-Host ""

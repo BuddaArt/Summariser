@@ -1,4 +1,3 @@
-/* <summariser>Pattern Set for Node.js/TypeScript with regex-based classification and member limits.</summariser> */
 import { PatternSet } from '../types';
 
 // ─── Node.js / TypeScript / JavaScript Pattern Set ───────────────────────────

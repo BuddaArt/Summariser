@@ -1,4 +1,3 @@
-/* <summariser>Tree generation and rendering logic for FileSummary data.</summariser> */
 import chalk from 'chalk';
 import * as path from 'path';
 import { FileSummary } from './summarizer';
@@ -79,6 +78,39 @@ export function renderTree(summaries: FileSummary[]): string {
   const tree = buildTree(summaries);
   const lines: string[] = [];
   renderNode(tree, '', lines);
+  return lines.join('\n');
+}
+
+function renderNodePlain(node: TreeNode, prefix: string, lines: string[]): void {
+  const entries = Array.from(node.children.entries());
+
+  for (let i = 0; i < entries.length; i++) {
+    const [name, child] = entries[i];
+    const isLast = i === entries.length - 1;
+    const connector = isLast ? '└── ' : '├── ';
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
+    const isFile = child.summary !== undefined && child.children.size === 0;
+
+    if (isFile) {
+      const summaryText = child.summary!.summary;
+      lines.push(`${prefix + connector}${name}  ${summaryText}`);
+    } else {
+      lines.push(`${prefix + connector}${name}/`);
+
+      if (child.summary !== undefined) {
+        const summaryText = child.summary.summary;
+        lines.push(`${childPrefix + '└── '}${name}  ${summaryText}`);
+      }
+
+      renderNodePlain(child, childPrefix, lines);
+    }
+  }
+}
+
+export function renderTreePlain(summaries: FileSummary[]): string {
+  const tree = buildTree(summaries);
+  const lines: string[] = [];
+  renderNodePlain(tree, '', lines);
   return lines.join('\n');
 }
 

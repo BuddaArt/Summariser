@@ -34,7 +34,7 @@ bash install.sh
 install.bat
 ```
 
-The script installs dependencies, compiles TypeScript, and runs `npm link` so `sum` and `summariser` become available globally.
+The script installs dependencies, compiles TypeScript, and runs `npm link` so `sumr` and `summariser` become available globally.
 
 **Option B — pre-built binary** (no Node.js required):
 
@@ -46,10 +46,10 @@ Download the binary for your platform from Releases and put it anywhere on your 
 
 ```bash
 # 1. Configure once
-sum config init
+sumr config init
 
 # 2. Run in any project
-sum --path ./my-project
+sumr --path ./my-project
 ```
 
 ---
@@ -58,12 +58,13 @@ sum --path ./my-project
 
 | Command | Description |
 |---|---|
-| `sum` | Analyse current directory |
-| `sum --path <dir>` | Analyse a specific directory |
-| `sum --concurrency <n>` | Parallel LLM requests (default: 5) |
-| `sum config init` | Interactive setup wizard |
-| `sum config show` | Print current config |
-| `sum config set <key> <value>` | Set a single config value |
+| `sumr` | Analyse current directory |
+| `sumr --path <dir>` | Analyse a specific directory |
+| `sumr --verbose` | Verbose mode with progress bar and colored tree |
+| `sumr --concurrency <n>` | Parallel LLM requests (default: 5) |
+| `sumr config init` | Interactive setup wizard |
+| `sumr config show` | Print current config |
+| `sumr config set <key> <value>` | Set a single config value |
 
 ---
 
@@ -86,12 +87,12 @@ Config is stored at:
 Examples:
 
 ```bash
-sum config set apiKey sk-...
-sum config set baseURL https://openrouter.ai/api/v1
-sum config set model anthropic/claude-3-haiku
-sum config set language Russian
-sum config set includePattern "\\.(ts|js|py)$"
-sum config set excludePattern "(node_modules|dist|\\.git|tests)"
+sumr config set apiKey sk-...
+sumr config set baseURL https://openrouter.ai/api/v1
+sumr config set model anthropic/claude-3-haiku
+sumr config set language Russian
+sumr config set includePattern "\\.(ts|js|py)$"
+sumr config set excludePattern "(node_modules|dist|\\.git|tests)"
 ```
 
 ---

@@ -1,4 +1,3 @@
-/* <summariser>Write summary as a cache comment at the top of the file.</summariser> */
 import * as fs from 'fs';
 
 // Comment delimiters by file extension

@@ -1,4 +1,3 @@
-/* <summariser>ScanDirectory with FileEntry and ScanOptions.</summariser> */
 import * as fs from 'fs';
 import * as path from 'path';
 
