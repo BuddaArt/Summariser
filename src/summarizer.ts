@@ -1,3 +1,4 @@
+/* <summariser>File entry summary with LLM response and cache.</summariser> */
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import { SummariserConfig } from './config';

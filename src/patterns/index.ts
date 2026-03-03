@@ -1,3 +1,4 @@
+/* <summariser>Pattern Set Registry for File Extension Lookup</summariser> */
 import { PatternSet } from './types';
 import { dotnetPatterns } from './dotnet';
 import { nodejsPatterns } from './nodejs';

@@ -1,3 +1,4 @@
+/* <summariser>Pattern Set for C#/dotnet with regex-based matching and priority rules.</summariser> */
 import { PatternSet } from '../types';
 
 // ─── .NET / C# Pattern Set ────────────────────────────────────────────────────

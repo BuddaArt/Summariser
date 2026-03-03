@@ -1,3 +1,4 @@
+/* <summariser>Tree generation and rendering logic for FileSummary data.</summariser> */
 import chalk from 'chalk';
 import * as path from 'path';
 import { FileSummary } from './summarizer';
@@ -36,35 +37,40 @@ function buildTree(summaries: FileSummary[]): TreeNode {
   return root;
 }
 
-function renderNode(node: TreeNode, depth: number, lines: string[]): void {
-  for (const [name, child] of node.children) {
-    const indent = '  '.repeat(depth);
+function renderNode(node: TreeNode, prefix: string, lines: string[]): void {
+  const entries = Array.from(node.children.entries());
+
+  for (let i = 0; i < entries.length; i++) {
+    const [name, child] = entries[i];
+    const isLast = i === entries.length - 1;
+    const connector = isLast ? '└── ' : '├── ';
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
     const isFile = child.summary !== undefined && child.children.size === 0;
 
     if (isFile) {
-      const baseName = path.basename(name, path.extname(name));
+      const ext = path.extname(name);
+      const baseName = path.basename(name, ext);
       const summaryText = child.summary!.summary;
       const hasError = child.summary!.error !== undefined;
 
-      const nameFormatted = chalk.hex('#FF8C00')(baseName);
-      const summaryFormatted = hasError ? chalk.red(summaryText) : chalk.white(summaryText);
+      const nameFormatted = chalk.hex('#FF8C00').bold(baseName) + chalk.gray(ext);
+      const summaryFormatted = hasError ? chalk.red(summaryText) : chalk.dim(summaryText);
 
-      lines.push(`${indent}${chalk.gray('--')} ${nameFormatted} ${chalk.gray('(')}${summaryFormatted}${chalk.gray(')')}`);
+      lines.push(`${chalk.gray(prefix + connector)}${nameFormatted}  ${summaryFormatted}`);
     } else {
-      // Directory node (or file that also has children — treated as dir)
-      lines.push(`${indent}${chalk.gray('-')} ${chalk.hex('#FF8C00').bold(name)}`);
+      lines.push(`${chalk.gray(prefix + connector)}${chalk.hex('#FF8C00').bold(name + '/')}`);
 
-      // If this node itself is also a file (unlikely but possible with same-named file/dir)
       if (child.summary !== undefined) {
-        const baseName = path.basename(name, path.extname(name));
+        const ext = path.extname(name);
+        const baseName = path.basename(name, ext);
         const summaryText = child.summary.summary;
         const hasError = child.summary.error !== undefined;
-        const nameFormatted = chalk.hex('#FF8C00')(baseName);
-        const summaryFormatted = hasError ? chalk.red(summaryText) : chalk.white(summaryText);
-        lines.push(`${'  '.repeat(depth + 1)}${chalk.gray('--')} ${nameFormatted} ${chalk.gray('(')}${summaryFormatted}${chalk.gray(')')}`);
+        const nameFormatted = chalk.hex('#FF8C00').bold(baseName) + chalk.gray(ext);
+        const summaryFormatted = hasError ? chalk.red(summaryText) : chalk.dim(summaryText);
+        lines.push(`${chalk.gray(childPrefix + '└── ')}${nameFormatted}  ${summaryFormatted}`);
       }
 
-      renderNode(child, depth + 1, lines);
+      renderNode(child, childPrefix, lines);
     }
   }
 }
@@ -72,7 +78,7 @@ function renderNode(node: TreeNode, depth: number, lines: string[]): void {
 export function renderTree(summaries: FileSummary[]): string {
   const tree = buildTree(summaries);
   const lines: string[] = [];
-  renderNode(tree, 0, lines);
+  renderNode(tree, '', lines);
   return lines.join('\n');
 }
 

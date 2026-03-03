@@ -1,7 +1,8 @@
+/* <summariser>Write summary as a cache comment at the top of the file.</summariser> */
 import * as fs from 'fs';
 
 // Comment delimiters by file extension
-const COMMENT_STYLES: Record<string, { start: string; end: string; line?: string }> = {
+const COMMENT_STYLES: Record<string, { start: string; end: string } | { line: string }> = {
   // C-family, JS, TS, Java, Go, Rust, Swift, Kotlin, PHP
   ts: { start: '/*', end: '*/' },
   tsx: { start: '/*', end: '*/' },

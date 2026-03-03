@@ -1,3 +1,4 @@
+/* <summariser>Саммари для анализа файлов проекта (ру/ен).</summariser> */
 
 export type Lang = 'ru' | 'en';
 

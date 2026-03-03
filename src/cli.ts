@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* <summariser>Анализатор команд для управления конфигурацией и реанимации файлов</summariser> */
 import { Command } from 'commander';
 import chalk from 'chalk';
 import * as path from 'path';

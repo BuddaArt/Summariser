@@ -1,3 +1,4 @@
+/* <summariser>ExtractedSymbols from source code with regex-based pattern matching and member extraction capabilities.</summariser> */
 // ─── Universal Pattern System Types ──────────────────────────────────────────
 
 /**
