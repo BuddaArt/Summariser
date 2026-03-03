@@ -1,0 +1,41 @@
+{
+  "name": "summariser",
+  "version": "1.0.0",
+  "description": "AI-powered project file summarizer",
+  "main": "dist/cli.js",
+  "bin": {
+    "smr": "dist/cli.js",
+    "summariser": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "package:win": "pkg dist/cli.js --targets node18-win-x64 --output bin/sum-win.exe",
+    "package:linux": "pkg dist/cli.js --targets node18-linux-x64 --output bin/sum-linux",
+    "package:mac": "pkg dist/cli.js --targets node18-macos-x64 --output bin/sum-macos",
+    "package:all": "npm run package:win && npm run package:linux && npm run package:mac"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^5.1.2",
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
+    "openai": "^4.52.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@yao-pkg/pkg": "^5.11.5",
+    "typescript": "^5.4.0"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/openai/**/*.json"
+    ],
+    "scripts": "dist/**/*.js",
+    "targets": [
+      "node18-win-x64",
+      "node18-linux-x64",
+      "node18-macos-x64"
+    ],
+    "outputPath": "bin"
+  }
+}

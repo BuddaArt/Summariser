@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run build)",
+      "Bash(node dist/cli.js --version)",
+      "Bash(node dist/cli.js config show)",
+      "Bash(node dist/cli.js --help)",
+      "Bash(node dist/cli.js config --help)",
+      "Bash(npm link)",
+      "Bash(where sum)",
+      "Bash(where summariser)",
+      "Bash(sum --version)",
+      "Bash(summariser --version)",
+      "Bash(smr --version)",
+      "Bash(where smr)",
+      "Read(//c/Users/dato/AppData/Roaming/npm/**)",
+      "Bash(node \"C:/Users/dato/AppData/Roaming/npm/node_modules/summariser/dist/cli.js\" --version)",
+      "Bash(node \"C:/Users/dato/AppData/Roaming/npm/node_modules/summariser/dist/cli.js\" --help)",
+      "Read(//c/Users/dato/Desktop/проекты/Summariser/**)",
+      "Bash(node -e \":*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\dato\\.claude\\projects\\c--Users-dato-Desktop---------Summariser"
+    ]
+  }
+}
