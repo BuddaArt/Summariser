@@ -36,7 +36,9 @@ function buildTree(summaries: FileSummary[]): TreeNode {
   return root;
 }
 
-function renderNode(node: TreeNode, prefix: string, lines: string[]): void {
+function renderNode(node: TreeNode, prefix: string, lines: string[], depth: number, maxDepth: number): void {
+  if (depth > maxDepth) return;
+
   const entries = Array.from(node.children.entries());
 
   for (let i = 0; i < entries.length; i++) {
@@ -57,31 +59,23 @@ function renderNode(node: TreeNode, prefix: string, lines: string[]): void {
 
       lines.push(`${chalk.gray(prefix + connector)}${nameFormatted}  ${summaryFormatted}`);
     } else {
-      lines.push(`${chalk.gray(prefix + connector)}${chalk.hex('#FF8C00').bold(name + '/')}`);
-
-      if (child.summary !== undefined) {
-        const ext = path.extname(name);
-        const baseName = path.basename(name, ext);
-        const summaryText = child.summary.summary;
-        const hasError = child.summary.error !== undefined;
-        const nameFormatted = chalk.hex('#FF8C00').bold(baseName) + chalk.gray(ext);
-        const summaryFormatted = hasError ? chalk.red(summaryText) : chalk.dim(summaryText);
-        lines.push(`${chalk.gray(childPrefix + '└── ')}${nameFormatted}  ${summaryFormatted}`);
-      }
-
-      renderNode(child, childPrefix, lines);
+      const dirLabel = chalk.hex('#FF8C00').bold(name + '/');
+      lines.push(`${chalk.gray(prefix + connector)}${dirLabel}`);
+      renderNode(child, childPrefix, lines, depth + 1, maxDepth);
     }
   }
 }
 
-export function renderTree(summaries: FileSummary[]): string {
+export function renderTree(summaries: FileSummary[], _unused?: unknown, maxDepth = Infinity): string {
   const tree = buildTree(summaries);
   const lines: string[] = [];
-  renderNode(tree, '', lines);
+  renderNode(tree, '', lines, 1, maxDepth);
   return lines.join('\n');
 }
 
-function renderNodePlain(node: TreeNode, prefix: string, lines: string[]): void {
+function renderNodePlain(node: TreeNode, prefix: string, lines: string[], depth: number, maxDepth: number): void {
+  if (depth > maxDepth) return;
+
   const entries = Array.from(node.children.entries());
 
   for (let i = 0; i < entries.length; i++) {
@@ -96,21 +90,15 @@ function renderNodePlain(node: TreeNode, prefix: string, lines: string[]): void 
       lines.push(`${prefix + connector}${name}  ${summaryText}`);
     } else {
       lines.push(`${prefix + connector}${name}/`);
-
-      if (child.summary !== undefined) {
-        const summaryText = child.summary.summary;
-        lines.push(`${childPrefix + '└── '}${name}  ${summaryText}`);
-      }
-
-      renderNodePlain(child, childPrefix, lines);
+      renderNodePlain(child, childPrefix, lines, depth + 1, maxDepth);
     }
   }
 }
 
-export function renderTreePlain(summaries: FileSummary[]): string {
+export function renderTreePlain(summaries: FileSummary[], _unused?: unknown, maxDepth = Infinity): string {
   const tree = buildTree(summaries);
   const lines: string[] = [];
-  renderNodePlain(tree, '', lines);
+  renderNodePlain(tree, '', lines, 1, maxDepth);
   return lines.join('\n');
 }
 

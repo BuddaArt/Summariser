@@ -62,8 +62,8 @@ export const T = {
     qMaxTokensHint:  'Keep low (50–200) for speed and cost efficiency',
     qConcurrency:    'Parallel requests to LLM',
     qConcurrencyHint:'Higher = faster but may hit rate limits',
-    qCacheInFile:     'Cache summaries inside source files?',
-    qCacheInFileHint: 'Writes a <summariser>…</summariser> comment at the top of each file — re-reads it on next run instead of calling the LLM',
+    qCacheInFile:     'Cache summaries to .sumr/ project directory?',
+    qCacheInFileHint: 'Saves summaries in <projectRoot>/.sumr/files.json — re-reads on next run instead of calling the LLM. Stale entries are auto-invalidated when a file changes.',
 
     qPrompt:         'Custom summarizer prompt (leave empty to use built-in default)',
     qPromptHint:     'Placeholders: {{file}}, {{language}}, {{content}}',
@@ -136,8 +136,8 @@ export const T = {
     qMaxTokensHint:  'Держите низким (50–200) для скорости и экономии',
     qConcurrency:    'Параллельных запросов к LLM',
     qConcurrencyHint:'Больше = быстрее, но может превысить лимит rate',
-    qCacheInFile:     'Кэшировать саммари прямо в исходных файлах?',
-    qCacheInFileHint: 'Вставляет комментарий <summariser>…</summariser> в начало каждого файла — при следующем запуске читает оттуда, а не обращается к LLM',
+    qCacheInFile:     'Кэшировать саммари в папку .sumr/ проекта?',
+    qCacheInFileHint: 'Сохраняет саммари в <корень>/.sumr/files.json — при следующем запуске читает оттуда. Устаревшие записи автоматически сбрасываются при изменении файла.',
 
     qPrompt:         'Кастомный промпт саммарайзера (оставьте пустым для встроенного)',
     qPromptHint:     'Плейсхолдеры: {{file}}, {{language}}, {{content}}',

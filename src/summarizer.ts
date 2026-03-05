@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { SummariserConfig } from './config';
 import { FileEntry } from './scanner';
 import { readCache, writeCache } from './cache';
+import { readFileCache, writeFileCache, acquireFileLock, releaseFileLock, waitForFileLock } from './project-cache';
 
 export interface FileSummary {
   file: FileEntry;
@@ -54,46 +55,75 @@ async function summarizeFile(
   config: SummariserConfig,
   file: FileEntry,
   useCache: boolean,
-  verbose = false
+  verbose = false,
+  useProjectCache = true
 ): Promise<FileSummary> {
-  if (useCache) {
-    const cached = readCache(file.absolutePath);
-    if (cached !== null) {
-      return { file, summary: cached, fromCache: true };
+  if (!useProjectCache) {
+    // Legacy in-file cache only
+    if (useCache) {
+      const cached = readCache(file.absolutePath);
+      if (cached !== null) return { file, summary: cached, fromCache: true };
     }
+    return doSummarize();
   }
 
-  const content = readFileContent(file.absolutePath);
+  // Cross-process lock: acquire first, then check cache inside the lock so we
+  // never run two summarizations for the same file concurrently across processes.
+  const locked = acquireFileLock(file.absolutePath);
+  if (!locked) {
+    // Another process holds the lock — wait for it to finish, then read its result.
+    await waitForFileLock(file.absolutePath);
+    const fresh = readFileCache(file.absolutePath);
+    if (fresh !== null) return { file, summary: fresh, fromCache: true };
+    // Other process errored and wrote nothing — acquire lock ourselves and summarize.
+    return summarizeFile(client, config, file, useCache, verbose, useProjectCache);
+  }
+
   try {
-    const response = await client.chat.completions.create({
-      model: config.model,
-      messages: [{ role: 'user', content: buildPrompt(file.relativePath, content, config.language, config.prompt || undefined) }],
-      max_tokens: config.maxTokens,
-      temperature: 0.2,
-    });
-    if (verbose) {
-      console.error(`\n[verbose] ${file.relativePath} response:`, JSON.stringify(response, null, 2));
-    }
-    const anyResponse = response as any;
-    if (anyResponse.error) {
-      throw new Error(typeof anyResponse.error === 'string' ? anyResponse.error : JSON.stringify(anyResponse.error));
-    }
-    if (!response.choices?.length) {
-      throw new Error('Empty response from LLM (no choices returned)');
-    }
-    const raw = response.choices[0]?.message?.content ?? '';
-    const summary = raw.replace(/<think>[\s\S]*?<\/think>/g, '').trim() || 'No summary generated';
+    // Inside the lock: always re-check cache — another process may have just written it.
     if (useCache) {
-      writeCache(file.absolutePath, summary);
+      const cached = readFileCache(file.absolutePath);
+      if (cached !== null) return { file, summary: cached, fromCache: true };
     }
-    return { file, summary };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error ? err.stack : undefined;
-    if (verbose) {
-      console.error(`\n[verbose] ${file.relativePath} error:`, stack ?? message);
+    return await doSummarize();
+  } finally {
+    releaseFileLock(file.absolutePath);
+  }
+
+  async function doSummarize(): Promise<FileSummary> {
+    const content = readFileContent(file.absolutePath);
+    try {
+      const response = await client.chat.completions.create({
+        model: config.model,
+        messages: [{ role: 'user', content: buildPrompt(file.relativePath, content, config.language, config.prompt || undefined) }],
+        max_tokens: config.maxTokens,
+        temperature: 0.2,
+      });
+      if (verbose) {
+        console.error(`\n[verbose] ${file.relativePath} response:`, JSON.stringify(response, null, 2));
+      }
+      const anyResponse = response as any;
+      if (anyResponse.error) {
+        throw new Error(typeof anyResponse.error === 'string' ? anyResponse.error : JSON.stringify(anyResponse.error));
+      }
+      if (!response.choices?.length) {
+        throw new Error('Empty response from LLM (no choices returned)');
+      }
+      const raw = response.choices[0]?.message?.content ?? '';
+      const summary = raw.replace(/<think>[\s\S]*?<\/think>/g, '').trim() || 'No summary generated';
+      writeFileCache(file.absolutePath, summary);
+      if (useCache && config.cacheInFile) {
+        writeCache(file.absolutePath, summary);
+      }
+      return { file, summary };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const stack = err instanceof Error ? err.stack : undefined;
+      if (verbose) {
+        console.error(`\n[verbose] ${file.relativePath} error:`, stack ?? message);
+      }
+      return { file, summary: '[Error generating summary]', error: message };
     }
-    return { file, summary: '[Error generating summary]', error: message };
   }
 }
 
@@ -104,7 +134,8 @@ export async function summarizeFiles(
   onProgress?: (completed: number, total: number, result: FileSummary) => void,
   verbose = false,
   useCache = false,
-  forceRescan = false
+  forceRescan = false,
+  useProjectCache = true
 ): Promise<FileSummary[]> {
   const client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL });
   if (verbose) {
@@ -122,7 +153,7 @@ export async function summarizeFiles(
     while (queue.length > 0) {
       const file = queue.shift();
       if (!file) break;
-      const result = await summarizeFile(client, config, file, useCache && !forceRescan, verbose);
+      const result = await summarizeFile(client, config, file, useCache && !forceRescan, verbose, useProjectCache);
       results.push(result);
       completed++;
       onProgress?.(completed, total, result);
