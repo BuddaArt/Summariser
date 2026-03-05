@@ -1,6 +1,6 @@
 {
   "name": "summariser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI-powered CLI tool that scans a project and generates per-file summaries using any OpenAI-compatible LLM",
   "main": "dist/cli.js",
   "bin": {
