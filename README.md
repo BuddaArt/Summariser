@@ -33,7 +33,7 @@ sumr config init
 **Watch mode** — run once, stays up to date automatically:
 
 ```bash
-sumr watch
+sumr watch --detach
 ```
 
 New or changed files are re-summarized on the fly. Keep it running in the background while you work.
@@ -53,15 +53,6 @@ sumr -p ./src -d 1      # top-level folders with summaries
 ```
 
 ---
-
-## Configuration
-
-```bash
-sumr config set apiKey sk-...
-sumr config set baseURL https://openrouter.ai/api/v1
-sumr config set model qwen3.5:0.8b
-sumr config set language Russian
-```
 
 Config file location:
 - **Windows** — `%APPDATA%\summariser\summariser-config.json`
